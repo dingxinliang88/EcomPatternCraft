@@ -9,6 +9,8 @@ target/
 *.iml
 *.ipr
 
+application-local.yaml
+
 ### Eclipse ###
 .apt_generated
 .classpath

@@ -24,7 +24,7 @@ public class User {
     @Column(nullable = false)
     private String pwd;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String email;
 
     @Column(nullable = false, name = "create_time")
