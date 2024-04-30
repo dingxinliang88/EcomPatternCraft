@@ -19,3 +19,13 @@ spring:
           auto: update # auto update ddl
       dialect: org.hibernate.dialect.MySQL57Dialect
       show-sql: true
+
+gitee:
+  client-id: xxx
+  client-secret: xxx
+  redirect-uri: http://localhost:8110/login/gitee
+  state: xxx
+  user-prefix: xxx
+  code-url: https://gitee.com/oauth/authorize?client_id=${gitee.client-id}&redirect_uri=${gitee.redirect-uri}&response_type=code&state=${gitee.state}
+  token-url: https://gitee.com/oauth/token?grant_type=authorization_code&client_id=${gitee.client-id}&client_secret=${gitee.client-secret}&redirect_uri=${gitee.redirect-uri}&code=%s
+  info-url: https://gitee.com/api/v5/user?access_token=%s
