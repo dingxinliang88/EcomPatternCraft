@@ -2,17 +2,22 @@ package com.youyi.ecom.service;
 
 import com.youyi.ecom.composite.BaseProductItem;
 import com.youyi.ecom.composite.ProductComposite;
+import com.youyi.ecom.constants.ProductItemConstant;
 import com.youyi.ecom.pojo.po.ProductItem;
 import com.youyi.ecom.repo.ProductItemRepository;
 import com.youyi.ecom.util.RedisUtil;
+import com.youyi.ecom.visitor.AddItemVisitor;
+import com.youyi.ecom.visitor.DelItemVisitor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class ProductItemService {
 
     @Autowired
@@ -21,8 +26,48 @@ public class ProductItemService {
     @Autowired
     private ProductItemRepository productItemRepository;
 
+    @Autowired
+    private AddItemVisitor addItemVisitor;
+
+    @Autowired
+    private DelItemVisitor delItemVisitor;
+
+    public ProductComposite addItem(ProductItem item) {
+        String name = item.getName();
+        Long pid = item.getPid();
+
+        productItemRepository.addItem(name, pid);
+
+        ProductComposite toAddItem = ProductComposite.builder()
+                .id(productItemRepository.findByNameAndPid(name, pid).getId())
+                .name(name)
+                .pid(pid)
+                .children(new ArrayList<>())
+                .build();
+        BaseProductItem newItems = addItemVisitor.visitor(toAddItem);
+        redisUtil.set(ProductItemConstant.PRODUCT_CACHE_KEY, newItems);
+        return (ProductComposite) newItems;
+    }
+
+    public ProductComposite delItem(ProductItem item) {
+        Long id = item.getId();
+        String name = item.getName();
+        Long pid = item.getPid();
+
+        productItemRepository.delItem(id);
+
+        ProductComposite toDelItem = ProductComposite.builder()
+                .id(id)
+                .name(name)
+                .pid(pid)
+                .build();
+        BaseProductItem newItems = delItemVisitor.visitor(toDelItem);
+        redisUtil.set(ProductItemConstant.PRODUCT_CACHE_KEY, newItems);
+        return (ProductComposite) newItems;
+    }
+
     public ProductComposite getAllItems() {
-        Object cacheItems = redisUtil.get("design:product:all");
+        Object cacheItems = redisUtil.get(ProductItemConstant.PRODUCT_CACHE_KEY);
         if (cacheItems != null) {
             return (ProductComposite) cacheItems;
         }
@@ -33,7 +78,7 @@ public class ProductItemService {
             throw new RuntimeException("product item tree is null");
         }
 
-        redisUtil.set("design:product:all", itemTree);
+        redisUtil.set(ProductItemConstant.PRODUCT_CACHE_KEY, itemTree);
         return itemTree;
     }
 
