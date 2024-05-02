@@ -25,12 +25,12 @@ public class ProductComposite extends BaseProductItem {
     private List<BaseProductItem> children = new ArrayList<>();
 
     @Override
-    protected void add(BaseProductItem item) {
+    public void add(BaseProductItem item) {
         this.children.add(item);
     }
 
     @Override
-    protected void remove(BaseProductItem item) {
+    public void remove(BaseProductItem item) {
         ProductComposite removeItem = (ProductComposite) item;
         Iterator<BaseProductItem> itr = children.iterator();
         while (itr.hasNext()) {
